@@ -5,9 +5,11 @@
 
 import cv2  # Computer vision library
 import object_detection  # Contains methods for object detection in images
+from imutils.paths import list_images
 
 # Get a list of jpeg image files containing traffic lights
-files = object_detection.get_files('traffic_light_input/*.jpg')
+#files = object_detection.get_files('D:/Deep_Learning_Projects/datasets/bosch_traffic_lights/*.png')
+files = list(list_images('D:/Deep_Learning_Projects/datasets/bosch_traffic_lights'))
 
 # Load the object detection model
 this_model = object_detection.load_ssd_coco()

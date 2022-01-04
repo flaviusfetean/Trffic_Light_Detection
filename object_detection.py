@@ -173,7 +173,7 @@ def save_image_annotated(img_rgb, file_name, output, model_traffic_lights=None):
             cv2.putText(img_rgb, label_text, (box["x"], box["y"]), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
     cv2.imwrite(output_file, cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR))
-    print(output_file)
+    #print(output_file)
 
 
 def center(box, coord_type):
@@ -196,7 +196,7 @@ def perform_object_detection(model, file_name, save_annotated=False, model_traff
     # Run the model
     output = model(input_tensor)
 
-    print("num_detections:", output['num_detections'], int(output['num_detections']))
+    #print("num_detections:", output['num_detections'], int(output['num_detections']))
 
     # Convert the tensors to a NumPy array
     num_detections = int(output.pop('num_detections'))
@@ -204,8 +204,8 @@ def perform_object_detection(model, file_name, save_annotated=False, model_traff
               for key, value in output.items()}
     output['num_detections'] = num_detections
 
-    print('Detection classes:', output['detection_classes'])
-    print('Detection Boxes:', output['detection_boxes'])
+    """print('Detection classes:', output['detection_classes'])
+    print('Detection Boxes:', output['detection_boxes'])"""
 
     # The detected classes need to be integers.
     output['detection_classes'] = output['detection_classes'].astype(np.int64)
