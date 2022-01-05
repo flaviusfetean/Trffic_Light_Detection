@@ -46,6 +46,7 @@ def show_history(history):
     plt.xlabel('epoch')
     plt.legend(['train_accuracy', 'validation_accuracy'], loc='best')
     plt.show()
+    plt.savefig("experiment1_600_photos_FCC_head/plot1.png")
 
 
 def Transfer(n_classes, freeze_layers=True):
@@ -195,7 +196,7 @@ class_weight = {0: n / cnt[0], 1: n / cnt[1], 2: n / cnt[2], 3: n / cnt[3]}
 print('Class weight:', class_weight)
 
 # Save the best model as traffic_FCC_head
-checkpoint = ModelCheckpoint("traffic_FCC_head", monitor='val_loss', mode='min', verbose=1, save_best_only=True)
+checkpoint = ModelCheckpoint("experiment1_600_photos_FCC_head/model", monitor='val_loss', mode='min', verbose=1, save_best_only=True)
 early_stopping = EarlyStopping(min_delta=0.0005, patience=15, verbose=1)
 
 # Generate model using transfer learning

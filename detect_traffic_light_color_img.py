@@ -13,7 +13,7 @@ from tensorflow.keras.applications import imagenet_utils
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.preprocessing.image import load_img
 
-FILENAME = "test_red.jpg"
+FILENAME = "D:\\Deep_Learning_Projects\\datasets\\cityscapes\\leftImg8bit\\train\\aachen\\aachen_000170_000019_leftImg8bit.png"
 
 # Load the Inception V3 model
 model_inception = InceptionV3(weights='imagenet', include_top=True, input_shape=(299, 299, 3))
@@ -33,13 +33,13 @@ print("Prediction for ", FILENAME, ": ", out_inception[0][0][1], out_inception[0
 model_inception.summary()
 
 # Detect traffic light color in a batch of image files
-files = object_detection.get_files('test_images/*.jpg')
+files = object_detection.get_files('D:\\Deep_Learning_Projects\\datasets\\cityscapes\\leftImg8bit\\train\\aachen\\*.png')
 
 # Load the SSD neural network that is trained on the COCO data set
 model_ssd = object_detection.load_ssd_coco()
 
 # Load the trained neural network
-model_traffic_lights_nn = keras.models.load_model("traffic.h5")
+model_traffic_lights_nn = keras.models.load_model("experiment1_600_photos_FCC_head\\model")
 
 # Go through all image files, and detect the traffic light color.
 for file in files:
