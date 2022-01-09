@@ -1,18 +1,16 @@
-# Project: How to Detect and Classify Traffic Lights
-# Author: Addison Sears-Collins
-# Date created: January 11, 2021
-# Description: This program extracts traffic lights from images.
 
 import cv2  # Computer vision library
 import object_detection  # Contains methods for object detection in images
 from imutils.paths import list_images
+import numpy as np
+import tensorflow as tf
 
 # Get a list of jpeg image files containing traffic lights
 #files = object_detection.get_files('D:/Deep_Learning_Projects/datasets/bosch_traffic_lights/*.png')
 files = list(list_images('D:/Deep_Learning_Projects/datasets/cityscapes'))
 
 # Load the object detection model
-this_model = object_detection.load_ssd_coco()
+this_model = object_detection.load_ssd_coco("resnet")
 
 # Keep track of the number of traffic lights found
 traffic_light_count = 0

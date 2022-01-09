@@ -14,12 +14,14 @@ import object_detection  # Custom object detection program
 import sys
 import tensorflow as tf  # Machine learning library
 from tensorflow import keras  # Library for neural networks
-from tensorflow.keras.applications.inception_v3 import InceptionV3, preprocess_input
+from tensorflow.keras.applications.inception_v3 import InceptionV3
+from tensorflow.keras.applications import MobileNetV3Large, MobileNetV3Small
+from tensorflow.keras.applications.mobilenet_v3 import preprocess_input
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.layers import Dense, Flatten, Dropout, GlobalAveragePooling2D, GlobalMaxPooling2D, \
-    BatchNormalization
+    BatchNormalization, Conv2D
 from tensorflow.keras.losses import categorical_crossentropy
-from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.models import Model, Sequential, load_model
 from tensorflow.keras.optimizers import Adam, Adadelta
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.utils import to_categorical
@@ -30,6 +32,7 @@ sys.path.append('../')
 print("TensorFlow", tf.__version__)
 print("Keras", keras.__version__)
 
+MODEL_PATH = "experiment8_9300_photos_mobilenet_v3_small_nonminimalistic_FCC_head_fine_tune_decaying_lr/model2"
 
 def show_history(history):
     """
@@ -49,7 +52,7 @@ def show_history(history):
     plt.savefig("experiment1_600_photos_FCC_head/plot1.png")
 
 
-def Transfer(n_classes, freeze_layers=True):
+def Transfer(n_classes, FCC_Head=True, freeze_layers=True):
     """
     Use the InceptionV3 neural network architecture to perform transfer learning.
 
@@ -68,11 +71,14 @@ def Transfer(n_classes, freeze_layers=True):
     # resolution.
     # Our neural network will build off of the Inception V3 model (trained on the ImageNet
     # data set).
-    base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=(299, 299, 3))
+    #base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=(299, 299, 3))
 
-    print("Inception V3 has finished loading.")
+    base_model = MobileNetV3Small(include_top=False, minimalistic=False)
+
+    print("Mobilenet V3 has finished loading.")
 
     # Display the base network architecture
+
     print('Layers: ', len(base_model.layers))
     print("Shape:", base_model.output_shape[1:])
     print("Shape:", base_model.output_shape)
@@ -95,6 +101,7 @@ def Transfer(n_classes, freeze_layers=True):
     top_model.add(Dropout(0.5))
     top_model.add(Dense(128, activation='relu'))
     top_model.add(Dense(n_classes, activation='softmax'))
+  
 
     # Freeze layers in the model so that they cannot be trained (i.e. the
     # parameters in the neural network will not change)
@@ -102,8 +109,7 @@ def Transfer(n_classes, freeze_layers=True):
         for layer in base_model.layers:
             layer.trainable = False
 
-    return top_model
-
+    return base_model, top_model
 
 # Perform image augmentation.
 # Image augmentation enables us to alter the available images
@@ -196,28 +202,40 @@ class_weight = {0: n / cnt[0], 1: n / cnt[1], 2: n / cnt[2], 3: n / cnt[3]}
 print('Class weight:', class_weight)
 
 # Save the best model as traffic_FCC_head
-checkpoint = ModelCheckpoint("experiment1_600_photos_FCC_head/model", monitor='val_loss', mode='min', verbose=1, save_best_only=True)
+checkpoint = ModelCheckpoint(MODEL_PATH, monitor='val_loss', mode='min', verbose=1, save_best_only=True)
 early_stopping = EarlyStopping(min_delta=0.0005, patience=15, verbose=1)
 
 # Generate model using transfer learning
-model = Transfer(n_classes=4, freeze_layers=True)
+base_model, model = Transfer(n_classes=4, freeze_layers=True)
 
 # Display a summary of the neural network model
-model.summary()
 
 # Generate a batch of randomly transformed images
 it_train = datagen.flow(x_train, y_train, batch_size=32)
 
-# Configure the model parameters for training
-model.compile(loss=categorical_crossentropy, optimizer=Adadelta(
-    lr=1.0, rho=0.95, epsilon=1e-08, decay=0.0), metrics=['accuracy'])
+NUM_LAYERS = len(base_model.layers)
+print(NUM_LAYERS)
+history_object = None
+lr = 1.0
+# Fine tune network
+for phase in range(5):
+    if phase > 0:
+        unlocking_idx = int(NUM_LAYERS / 5 * phase)
+        for layer in base_model.layers[-unlocking_idx:]:
+            layer.trainable = True
+    model.summary()
 
-# Train the model on the image batches for a fixed number of epochs
-# Store a record of the error on the training data set and metrics values
-#   in the history object.
-history_object = model.fit(it_train, epochs=250, validation_data=(
-    x_valid, y_valid), shuffle=True, callbacks=[
-    checkpoint, early_stopping], class_weight=class_weight)
+    model.compile(loss=categorical_crossentropy, optimizer=Adadelta(
+        lr=lr, rho=0.95, epsilon=1e-08, decay=0.0), metrics=['accuracy'])
+
+    # Train the model on the image batches for a fixed number of epochs
+    # Store a record of the error on the training data set and metrics values
+    #   in the history object.
+    epochs = 50 - 5 * phase
+    history_object = model.fit(it_train, epochs=epochs, validation_data=(
+        x_valid, y_valid), shuffle=True, callbacks=[
+        checkpoint, early_stopping], class_weight=class_weight)
+    lr = lr / 3
 
 # Display the training history
 show_history(history_object)
@@ -252,6 +270,6 @@ for idx in range(len(x_valid)):
     img = object_detection.reverse_preprocess_inception(img)
 
     # Save the image file
-    cv2.imwrite(file_name, cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+    #cv2.imwrite(file_name, cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
 
 print('The validation data set has been saved!')

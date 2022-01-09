@@ -96,13 +96,15 @@ def load_rgb_images(pattern, shape=None):
         return images
 
 
-def load_ssd_coco():
+def load_ssd_coco(model="resnet"):
     """
     Load the neural network that has the SSD architecture, trained on the COCO
     data set.
     """
-    return load_model("ssd_resnet50_v1_fpn_640x640_coco17_tpu-8")
-
+    if model == "resnet":
+        return load_model("ssd_resnet50_v1_fpn_640x640_coco17_tpu-8")
+    else:
+        return load_model("ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8")
 
 def save_image_annotated(img_rgb, file_name, output, model_traffic_lights=None):
     """
