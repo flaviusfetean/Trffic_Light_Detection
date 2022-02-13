@@ -73,7 +73,7 @@ def Transfer(n_classes, FCC_Head=True, freeze_layers=True):
     # data set).
     #base_model = InceptionV3(weights='imagenet', include_top=False, input_shape=(299, 299, 3))
 
-    base_model = MobileNetV3Small(include_top=False, minimalistic=False)
+    base_model = MobileNetV3Small(include_top=False, minimalistic=False, input_shape=(224, 224, 3))
 
     print("Mobilenet V3 has finished loading.")
 
@@ -120,7 +120,7 @@ datagen = ImageDataGenerator(rotation_range=5, width_shift_range=[-10, -5, -2, 0
                              zoom_range=[0.7, 1.5], height_shift_range=[-10, -5, -2, 0, 2, 5, 10],
                              horizontal_flip=True)
 
-shape = (299, 299)
+shape = (224, 224)
 
 # Load the cropped traffic light images from the appropriate directory
 img_0_green = object_detection.load_rgb_images("traffic_light_dataset/0_green/*", shape)
@@ -235,7 +235,7 @@ for phase in range(5):
     history_object = model.fit(it_train, epochs=epochs, validation_data=(
         x_valid, y_valid), shuffle=True, callbacks=[
         checkpoint, early_stopping], class_weight=class_weight)
-    lr = lr / 3
+    #lr = lr / 3
 
 # Display the training history
 show_history(history_object)
